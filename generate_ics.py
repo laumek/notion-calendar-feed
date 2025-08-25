@@ -1,12 +1,10 @@
 import requests
 from ics import Calendar, Event
 from datetime import datetime
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
-NOTION_TOKEN = os.getenv('Notion_API_KEY_2')
-DATABASE_ID = 'e2c93ae851a64cd4b9801a33a2c0febf'
+NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
+DATABASE_ID = os.environ.get("DATABASE_ID")
 
 headers = {
     "Authorization": f"Bearer {NOTION_TOKEN}",
