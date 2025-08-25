@@ -32,3 +32,4 @@ jobs:
           git add docs/notion_calendar.ics
           git commit -m "Update Notion calendar" || echo "No changes"
           git push
+
