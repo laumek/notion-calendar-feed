@@ -209,3 +209,5 @@ __marimo__/
 #Files
 retrieve_notion_flashcards.py
 add_row_knowledge.py
+
+.DS_Store
