@@ -36,5 +36,5 @@ for item in data["results"]:
         cal.events.add(e)
 
 # Save ICS file
-with open("notion_calendar.ics", "w") as f:
+with open("docs/notion_calendar.ics", "w") as f:
     f.writelines(cal)
