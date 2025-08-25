@@ -1,4 +1,3 @@
-
 import requests
 from ics import Calendar, Event
 from collections import defaultdict
@@ -47,13 +46,9 @@ for item in data.get("results", []):
     if event_start < CUTOFF_DATE:
         continue
 
-    # Event category (Relation)
-    category_relation = props.get("Calendar types", {}).get("relation", [])
-    if category_relation:
-        category_name_raw = category_relation[0].get("title", "")
-        category_name = clean_text(category_name_raw) or "Other"
-    else:
-        category_name = "Other"
+    # Event category (Select)
+    category_select = props.get("Category", {}).get("select")
+    category_name = clean_text(category_select.get("name", "Other")) if category_select else "Other"
 
     # Create ICS event
     e = Event()
