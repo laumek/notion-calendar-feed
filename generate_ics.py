@@ -24,7 +24,7 @@ cal = Calendar()
 
 for item in data["results"]:
     props = item["properties"]
-    title = props["Name"]["title"][0]["plain_text"] if props["Name"]["title"] else "Untitled"
+    title = props["Tasks planned"]["title"][0]["plain_text"] if props["Tasks planned"]["title"] else "Untitled"
     date_info = props["Date"]["date"]
 
     if date_info and "start" in date_info:
