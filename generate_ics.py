@@ -1,12 +1,22 @@
+
 import requests
 from ics import Calendar, Event
 from collections import defaultdict
 import os
 import re
+from datetime import datetime
 
+# --- CONFIG ---
 NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
 DATABASE_ID = os.environ.get("DATABASE_ID")
+CUTOFF_DATE = datetime(2025, 7, 1)  # Only events on/after this date
 
+# --- HELPERS ---
+def clean_text(s):
+    """Remove emojis, links, and special characters from text."""
+    return re.sub(r"[^\w\s-]", "", s)
+
+# --- FETCH EVENTS FROM NOTION ---
 headers = {
     "Authorization": f"Bearer {NOTION_TOKEN}",
     "Notion-Version": "2022-06-28",
@@ -17,15 +27,11 @@ url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
 res = requests.post(url, headers=headers)
 data = res.json()
 
-# Helper to clean text (remove emojis/links)
-def clean_text(s):
-    return re.sub(r"[^\w\s-]", "", s)
-
-# Dictionary to hold separate calendars per category
+# --- CREATE CALENDARS PER CATEGORY ---
 calendars = defaultdict(Calendar)
 
-for item in data["results"]:
-    props = item["properties"]
+for item in data.get("results", []):
+    props = item.get("properties", {})
 
     # Event title
     title_prop = props.get("Tasks planned", {}).get("title", [])
@@ -36,23 +42,27 @@ for item in data["results"]:
     if not date_info or "start" not in date_info:
         continue
 
-    # Single category from Relation
-    category_relation = props.get("Category", {}).get("relation", [])
+    # Parse start date and filter by cutoff
+    event_start = datetime.fromisoformat(date_info["start"].replace("Z", "+00:00"))
+    if event_start < CUTOFF_DATE:
+        continue
+
+    # Event category (Relation)
+    category_relation = props.get("Calendar types", {}).get("relation", [])
     if category_relation:
-        # Take the first related page and clean text
         category_name_raw = category_relation[0].get("title", "")
         category_name = clean_text(category_name_raw) or "Other"
     else:
         category_name = "Other"
 
-    # Create event
+    # Create ICS event
     e = Event()
     e.name = title
     e.begin = date_info["start"]
     if "end" in date_info and date_info["end"]:
         e.end = date_info["end"]
 
-    # Add to calendar for this category
+    # Add to category calendar
     calendars[category_name].events.add(e)
 
 # Save separate ICS files per category
