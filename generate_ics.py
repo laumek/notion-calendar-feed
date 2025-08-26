@@ -3,7 +3,7 @@ from ics import Calendar, Event
 from collections import defaultdict
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # --- CONFIG ---
 NOTION_TOKEN = os.environ.get("NOTION_TOKEN")
@@ -53,9 +53,22 @@ for item in data.get("results", []):
     # Create ICS event
     e = Event()
     e.name = title
-    e.begin = date_info["start"]
-    if "end" in date_info and date_info["end"]:
-        e.end = date_info["end"]
+
+    start_str = date_info["start"]
+    end_str = date_info.get("end")
+
+    if "T" not in start_str:  # all-day event
+        e.begin = start_str
+        if end_str:
+            e.end = end_str
+        else:
+            # Default all-day event ends the same day
+            e.end = (datetime.fromisoformat(start_str) + timedelta(days=1)).date().isoformat()
+        e.make_all_day()
+    else:  # timed event
+        e.begin = start_str
+        if end_str:
+            e.end = end_str
 
     # Add to category calendar
     calendars[category_name].events.add(e)
